@@ -18,21 +18,18 @@
     // send for evaluation, synchronous
     GHCi.prototype.eval = function (expr, success) {
         console.log('reached eval with ' + expr);
-        var res = null;
         $.ajax({
             url: this.server + '/hint',
             type: 'get',
             data : { 'expr':expr, 'fileurl': this.fileurl },
             dataType : 'json',
-            async: false,
-            success: function (data) { res = data; },
+            success: success
         });
-        return res;
     }
     
     // this is executed when the page is finished loading
     $(document).ready(function(){
-        ghci = new GHCi('http://c-71-207-252-122.hsd1.al.comcast.net:3000');
+        ghci = new GHCi('http://localhost:3000');
         
         // add an input element to our form
         var inputEl = $('<input class="expr" id="expr" type="text" />');
@@ -44,19 +41,18 @@
             var fileurl = $('#fileurl');
             // send to the server
             ghci.load(fileurl.val());
-            var result = ghci.eval(expr.val());
+            ghci.eval(expr.val(), function(result) {
+                // display the result
+                var newEl = $('<div/>');
+                newEl.html(result.result);
+                $('#ghci').append(newEl);
             
-            // display the result
-            var newEl = $('<div/>');
-            newEl.html(result);
-            $('#ghci').append(newEl);
-            
-            // disable the input element
-            expr.attr("disabled", "disabled");
-            // add an input element to our form
-            var inputEl = $('<input class="expr" id="expr" type="text" />');
-            $('#ghci').append(inputEl);
-        
+                // disable the input element
+                expr.attr("disabled", "disabled");
+                // add an input element to our form
+                var inputEl = $('<input class="expr" id="expr" type="text" />');
+                $('#ghci').append(inputEl);
+            });
             // don't use the default method for submitting the form!
             return false;
         });
